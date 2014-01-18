@@ -13,14 +13,20 @@ import android.preference.PreferenceActivity;
  */
 public class SettingsDisplay extends PreferenceActivity 
 {
-	   @Override
-	    public void onCreate(Bundle savedInstanceState) {
-	        super.onCreate(savedInstanceState);
-	    }
+   	@Override
+	public void onCreate(Bundle savedInstanceState) {
+	    super.onCreate(savedInstanceState);
+	    
+	    // Display the fragment as the main content.
+	    getFragmentManager().beginTransaction()
+	            .replace(android.R.id.content, new CountryPrefs())
+	            .commit();
+	
+	}
 
-	    @Override
-	    public void onBuildHeaders(List<Header> target) {       
-	        loadHeadersFromResource(R.xml.preference_headers, target);
-	    }
-
+   @Override
+   protected boolean isValidFragment(String fragmentName)
+   {
+	   return (fragmentName == "CountryPrefs");
+   }
 }
