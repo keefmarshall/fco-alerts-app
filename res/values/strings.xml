@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">fco-alerts-app</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+
+    
+    <string name="register_error">Sorry, cannot register at this time</string>
+
+    
+    <string name="all">ALL</string>
+    <string name="country_list">Countries and Territories</string>
+    
+    <string name="settings_title">Settings</string>
+</resources>

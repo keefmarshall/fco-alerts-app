@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android">
+
+<!-- 
+    <PreferenceCategory
+            android:title="@string/settings_title">
+-->            
+        <MultiSelectListPreference
+                android:key="countries"
+                android:enabled="true"
+                android:persistent="true"
+                android:title="@string/country_list"
+                android:entries="@array/loading_countries"
+                android:entryValues="@array/loading_countries"
+                android:defaultValue="@array/empty_array"
+                android:summary=""
+                android:dialogTitle="@string/country_list" />
+        
+</PreferenceScreen>

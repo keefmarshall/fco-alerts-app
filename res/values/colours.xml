@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Light blue-ish foregrounds -->
+    <color name="foreground">#FF5ba2eb</color>
+    <color name="foreground_fader">#886796d9</color>
+
+    <!-- Lilac/purple foreground highlights -->
+    <color name="highlight">#FFAAAAEE</color>
+    <color name="highlight_fader">#88BBBBFF</color>
+    
+    <!--  dark blue background -->
+    <color name="background">#112233</color>
+    
+    <!-- Android standard background - dark grey -->
+    <color name="android_background">#191919</color>
+    
+</resources>
+
