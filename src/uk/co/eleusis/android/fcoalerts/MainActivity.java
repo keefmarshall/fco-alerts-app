@@ -59,6 +59,8 @@ public class MainActivity extends ListActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        getActionBar().setTitle(R.string.app_title);
+        
         context = getApplicationContext();
         gcmreg = new GCMRegistration(this, SENDER_ID);
         
