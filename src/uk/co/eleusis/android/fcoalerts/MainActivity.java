@@ -1,15 +1,24 @@
 package uk.co.eleusis.android.fcoalerts;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import uk.co.eleusis.android.util.Messager;
+
+import com.google.gson.Gson;
 
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
@@ -52,6 +61,7 @@ public class MainActivity extends ListActivity
     private SimpleAdapter alertListAdapter;
     private List<Map<String, Object>> alerts;
     
+    private PreferenceChangeListener preferenceListener;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) 
@@ -62,6 +72,11 @@ public class MainActivity extends ListActivity
         getActionBar().setTitle(R.string.app_title);
         
         context = getApplicationContext();
+
+        preferenceListener = new PreferenceChangeListener();  
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        preferences.registerOnSharedPreferenceChangeListener(preferenceListener);
+
         gcmreg = new GCMRegistration(this, SENDER_ID);
         
         // Check device for Play Services APK. If check succeeds, proceed with GCM registration.
@@ -127,7 +142,7 @@ public class MainActivity extends ListActivity
 
     	};
     	
-    	requestTask.execute("http://fcoalerts.herokuapp.com/latest");
+    	requestTask.execute(Constants.SERVER_URL + "latest");
     }
     
     private void drawAlerts()
@@ -192,5 +207,76 @@ public class MainActivity extends ListActivity
         startActivity(settingsIntent);
     }
     
+
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    // Preferences
+    
+    private class PreferenceChangeListener implements OnSharedPreferenceChangeListener 
+    {
+        @SuppressWarnings("unchecked") // casting to Set<String>
+		@Override
+        public void onSharedPreferenceChanged(SharedPreferences prefs, String key) 
+        {
+            // Function to manage changes
+            //somethingChanged();
+        	Log.d(TAG, "Preference changed, key = " + key);
+        	if (key.equals("countries"))
+        	{
+	        	Object thing = prefs.getStringSet(key, null);
+	        	Log.d(TAG, "'" + key + "' contains object of class: " + thing.getClass().getName());
+	        	Log.d(TAG, ".. and contents are: " + thing.toString());
+	        	// turns out 'countries' is a HashSet, containing the contents of the checked 
+	        	// entries e.g.: [Angola, Barbados, Turkey, Afghanistan, American Samoa, Bahrain]
+	        	if (thing != null)
+	        	{
+	        		saveCountriesToServer((Set<String>)thing);
+	        	}
+        	}
+        }
+    }
+
+
+	private void saveCountriesToServer(final Set<String> countries) 
+	{
+		// TODO: something sensible if there's no network connection! Leave it for now, this is
+		// only a prototype at the moment
+		
+		// We're sending the country list to the server with the regid:
+    	AsyncTask<String, Integer, String> requestTask = 
+    			new AsyncTask<String, Integer, String>()
+    	{
+
+    		@Override
+    		protected String doInBackground(String... params) 
+    		{
+    	        ServerComms comms = new ServerComms();
+    			String content = "";
+    			try 
+    			{
+    				Map<String, String> postParams = new HashMap<String, String>();
+    				postParams.put("countries", new Gson().toJson(countries));
+    				postParams.put("regid", MainActivity.this.regid);
+    				content = comms.postRequest(params[0], postParams);
+    			}
+    			catch (IOException e) 
+    			{
+    				// TODO Auto-generated catch block
+    				e.printStackTrace();
+    			}
+    			return content;
+    		}
+    		
+    		@Override
+    	    protected void onPostExecute(String content)
+    	    {
+    			Messager.toast(MainActivity.this, 
+    					"Country preferences saved successfully to server");
+    	    }
+
+    	};
+    	
+    	requestTask.execute(Constants.SERVER_URL + "countries");
+	}
 
 }

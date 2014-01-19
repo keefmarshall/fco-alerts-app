@@ -231,9 +231,7 @@ public class GCMRegistration
     	// the ID to the online server.
     	try 
     	{
-    		
-			//URL url = new URL("http://192.168.0.8:3000/register/");
-			URL url = new URL("http://fcoalerts.herokuapp.com/register/");
+			URL url = new URL(Constants.SERVER_URL + "register/");
 			String params = "regid=" + URLEncoder.encode(regid, "UTF-8");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setDoOutput(true);
