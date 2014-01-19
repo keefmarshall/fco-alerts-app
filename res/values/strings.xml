@@ -12,6 +12,6 @@
     
     <string name="all">ALL</string>
     <string name="country_list">Countries and Territories</string>
-    
+    <string name="show_all_countries">See only selected notifications</string>
     <string name="settings_title">Settings</string>
 </resources>

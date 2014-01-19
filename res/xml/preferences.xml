@@ -6,6 +6,12 @@
     <PreferenceCategory
             android:title="@string/settings_title">
 -->            
+		<CheckBoxPreference
+                android:title="@string/show_all_countries"
+                android:key="all_countries_checkbox"
+                android:disableDependentsState="false">
+        </CheckBoxPreference>
+
         <MultiSelectListPreference
                 android:key="countries"
                 android:enabled="true"
@@ -15,6 +21,7 @@
                 android:entryValues="@array/loading_countries"
                 android:defaultValue="@array/empty_array"
                 android:summary=""
-                android:dialogTitle="@string/country_list" />
+                android:dialogTitle="@string/country_list"
+                android:dependency="all_countries_checkbox" />
         
 </PreferenceScreen>

@@ -233,6 +233,19 @@ public class MainActivity extends ListActivity
 	        		saveCountriesToServer((Set<String>)thing);
 	        	}
         	}
+        	else if (key.equals("all_countries_checkbox"))
+        	{
+        		boolean checked = prefs.getBoolean("all_countries_checkbox", false);
+        		if (checked)
+        		{
+        			saveCountriesToServer((Set<String>) prefs.getStringSet("countries", null));
+        		}
+        		else
+        		{
+        			removeCountriesFromServer();
+        		}
+        		
+        	}
         }
     }
 
@@ -277,6 +290,47 @@ public class MainActivity extends ListActivity
     	};
     	
     	requestTask.execute(Constants.SERVER_URL + "countries");
+	}
+
+	private void removeCountriesFromServer() 
+	{
+		// TODO: something sensible if there's no network connection! Leave it for now, this is
+		// only a prototype at the moment
+		
+		// We're just sending the regid
+    	AsyncTask<String, Integer, String> requestTask = 
+    			new AsyncTask<String, Integer, String>()
+    	{
+
+    		@Override
+    		protected String doInBackground(String... params) 
+    		{
+    	        ServerComms comms = new ServerComms();
+    			String content = "";
+    			try 
+    			{
+    				Map<String, String> postParams = new HashMap<String, String>();
+    				postParams.put("regid", MainActivity.this.regid);
+    				content = comms.postRequest(params[0], postParams);
+    			}
+    			catch (IOException e) 
+    			{
+    				// TODO Auto-generated catch block
+    				e.printStackTrace();
+    			}
+    			return content;
+    		}
+    		
+    		@Override
+    	    protected void onPostExecute(String content)
+    	    {
+    			Messager.toast(MainActivity.this, 
+    					"Country preferences removed successfully from server");
+    	    }
+
+    	};
+    	
+    	requestTask.execute(Constants.SERVER_URL + "removeCountries");
 	}
 
 }
