@@ -16,19 +16,21 @@
 
 package uk.co.eleusis.android.fcoalerts;
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 /**
  * This {@code IntentService} does the actual handling of the GCM message.
@@ -67,16 +69,6 @@ public class GcmIntentService extends IntentService {
                 sendNotification("Deleted messages on server: " + extras.toString());
             // If it's a regular GCM message, do some work.
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
-                // This loop represents the service doing some work.
-                for (int i = 0; i < 5; i++) {
-                    Log.i(TAG, "Working... " + (i + 1)
-                            + "/5 @ " + SystemClock.elapsedRealtime());
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                    }
-                }
-                Log.i(TAG, "Completed work @ " + SystemClock.elapsedRealtime());
                 // Post notification of received message.
                 sendNotification(extras);
                 Log.i(TAG, "Received: " + extras.toString());
@@ -110,13 +102,19 @@ public class GcmIntentService extends IntentService {
 
     private void sendNotification(Bundle bundle) 
     {
+    	NotificationPreferences nprefs = readNotificationPreferences();
+    	if (nprefs.notifications) {return;}
+    	
         mNotificationManager = (NotificationManager)
                 this.getSystemService(Context.NOTIFICATION_SERVICE);
 
+        // When the user clicks on the notification, launch the FCO website using
+        // the link in the alert
     	Uri uri = Uri.parse((String)bundle.get("link"));
     	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
     	PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
     	
+// 		This commented Intent just launches MainActivity for FCOAlerts
 //        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
 //                new Intent(this, MainActivity.class), 0);
 
@@ -131,8 +129,50 @@ public class GcmIntentService extends IntentService {
         .setContentIntent(contentIntent);
 
 		Notification notification = mBuilder.build();
-		notification.flags |= Notification.FLAG_SHOW_LIGHTS;
+		notification.flags |= (Notification.FLAG_SHOW_LIGHTS | Notification.FLAG_AUTO_CANCEL);
+		
+		Log.d(TAG, "Got defaults, before prefs = " + notification.defaults);
+		if (nprefs.vibrate)
+		{
+			notification.defaults &= ~(Notification.DEFAULT_VIBRATE);
+		}
+		
+		if (nprefs.sound)
+		{
+			notification.defaults &= ~(Notification.DEFAULT_SOUND);
+		}
+		Log.d(TAG, "Got defaults, after prefs = " + notification.defaults);
 				
         mNotificationManager.notify(NOTIFICATION_ID, notification);
+    }
+    
+    private class NotificationPreferences
+    {
+    	private boolean notifications = true;
+    	private boolean vibrate = true;
+    	private boolean sound = true;
+    	
+    	@Override public String toString()
+    	{
+    		return ("{'notf': " + notifications + ", 'vibrate': " + vibrate 
+    				+ ", 'sound': " + sound + "}");
+    	}
+    }
+    
+    private NotificationPreferences readNotificationPreferences()
+    {
+    	NotificationPreferences nprefs = new NotificationPreferences();
+    	
+    	// The way I had to write this, the checkboxes are ticked to turn *off* the feature,
+    	// so "notifications == true" means "disable all notifications" etc..
+    	// [sorry!]
+    	SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+    	nprefs.notifications = sharedPref.getBoolean("notifications_checkbox", false);
+    	nprefs.sound = sharedPref.getBoolean("sound_checkbox", false);
+    	nprefs.vibrate = sharedPref.getBoolean("vibration_checkbox", false);
+
+    	Log.d(TAG, "Got notification prefs: " + nprefs);
+    	
+    	return nprefs;
     }
 }

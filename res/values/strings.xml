@@ -11,7 +11,13 @@
 
     
     <string name="all">ALL</string>
-    <string name="country_list">Countries and Territories</string>
-    <string name="show_all_countries">See only selected notifications</string>
+    <string name="settings_countries_title">Country settings</string>
+    <string name="country_list">Choose countries and territories...</string>
+    <string name="show_all_countries">See only selected countries</string>
     <string name="settings_title">Settings</string>
+    
+    <string name="preference_notifications">Notifications</string>
+    <string name="disable_notifications">Disable notifications</string>
+    <string name="disable_vibration">Disable vibration</string>
+    <string name="disable_sound">Disable sound</string>
 </resources>

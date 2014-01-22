@@ -2,11 +2,10 @@
 <PreferenceScreen
         xmlns:android="http://schemas.android.com/apk/res/android">
 
-<!-- 
     <PreferenceCategory
-            android:title="@string/settings_title">
--->            
-		<CheckBoxPreference
+            android:title="@string/settings_countries_title">
+
+       	<CheckBoxPreference
                 android:title="@string/show_all_countries"
                 android:key="all_countries_checkbox"
                 android:disableDependentsState="false">
@@ -24,4 +23,25 @@
                 android:dialogTitle="@string/country_list"
                 android:dependency="all_countries_checkbox" />
         
+    </PreferenceCategory>
+    
+    <PreferenceCategory
+        android:title="@string/preference_notifications">
+        
+        <CheckBoxPreference 
+            android:title="@string/disable_notifications"
+            android:key="notifications_checkbox"
+            android:disableDependentsState="true"/>
+        
+        <CheckBoxPreference
+            android:title="@string/disable_vibration"
+            android:key="vibration_checkbox"
+            android:dependency="notifications_checkbox"/>
+        
+        <CheckBoxPreference
+            android:title="@string/disable_sound"
+            android:key="sound_checkbox"
+            android:dependency="notifications_checkbox"/>
+    
+    </PreferenceCategory>
 </PreferenceScreen>
