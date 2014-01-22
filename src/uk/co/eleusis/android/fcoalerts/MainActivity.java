@@ -11,9 +11,6 @@ import java.util.Map;
 import java.util.Set;
 
 import uk.co.eleusis.android.util.Messager;
-
-import com.google.gson.Gson;
-
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -31,6 +28,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+
+import com.google.gson.Gson;
+import com.markupartist.android.widget.PullToRefreshListView;
+import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
 /**
  * MainActivity for FCO alerts - this is mostly a copy of DemoActivity from
@@ -104,6 +105,20 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     {
         setContentView(R.layout.activity_main);
         getActionBar().setTitle(R.string.app_title);
+        
+        // Special pull-to-refresh functionality, fires when pulled
+        // Requires external library, see https://github.com/johannilsson/android-pulltorefresh
+        ((PullToRefreshListView) getListView()).setOnRefreshListener(new OnRefreshListener() 
+        {
+            @Override
+            public void onRefresh() 
+            {
+            	Log.v(TAG, "pull-to-refresh: onRefresh() called..");
+            	
+                // Do work to refresh the list here.
+                fetchLatestAlerts();
+            }
+        });
     }
     
     /////////////////////////////////////////////////////////////////
@@ -222,6 +237,7 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     	    	
     	    	MainActivity.this.alerts = alerts;
     	    	drawAlerts();
+    	    	((PullToRefreshListView) getListView()).onRefreshComplete();
     	    }
 
     	};
@@ -233,6 +249,7 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     {
     	// need to strip HTML from descriptions - this is hacky, probably should build
     	// my own list adapter..
+    	Log.v(TAG, "Drawing alerts list.");
     	
     	alertListAdapter = new SimpleAdapter(
                 this, alerts, R.layout.alert_item, 
