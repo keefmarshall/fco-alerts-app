@@ -273,6 +273,7 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     {
         Intent settingsIntent = new Intent().setClass(this, SettingsDisplay.class);
         startActivity(settingsIntent);
+        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.fade_out);
     }
     
 
