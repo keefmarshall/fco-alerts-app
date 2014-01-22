@@ -1,6 +1,10 @@
 package uk.co.eleusis.android.fcoalerts;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +19,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -67,9 +72,7 @@ public class MainActivity extends ListActivity
     protected void onCreate(Bundle savedInstanceState) 
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        getActionBar().setTitle(R.string.app_title);
+        initialiseUI();
         
         context = getApplicationContext();
 
@@ -96,15 +99,56 @@ public class MainActivity extends ListActivity
         }
     }
     
+    private void initialiseUI()
+    {
+        setContentView(R.layout.activity_main);
+        getActionBar().setTitle(R.string.app_title);
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    // LIFECYCLE EVENTS
+
     @Override
     protected void onStart() 
     {
         super.onStart();
         
         // Fetch the latest feeds and show them on the home page
-        // TODO: get this URL from somewhere saner :)
         fetchLatestAlerts();
     }
+
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) 
+    {
+    	Map<String, Object> alert = alerts.get(position);
+    	Uri uri = Uri.parse((String)alert.get("link"));
+    	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+    	startActivity(intent);
+    }
+    
+    @Override
+    protected void onResume() 
+    {
+        super.onResume();
+        // Check device for Play Services APK.
+        gcmreg.checkPlayServices();
+    }
+
+    /**
+     * this is called when the screen rotates or the keyboard comes up.
+     */
+    @Override
+    public void onConfigurationChanged(Configuration newConfig)
+    {
+        super.onConfigurationChanged(newConfig);
+        initialiseUI();
+    }
+
+
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    // ALERTS
 
     private void fetchLatestAlerts()
     {
@@ -131,9 +175,25 @@ public class MainActivity extends ListActivity
     		
     	    protected void onPostExecute(List<Map<String, Object>> alerts)
     	    {
+    	    	// date is: 2013-12-19T14:52:18Z
+    	    	SimpleDateFormat dateParser =  new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'");
+    	    	DateFormat dateFormat = android.text.format.DateFormat.getMediumDateFormat(context);
+    	    	DateFormat timeFormat = android.text.format.DateFormat.getTimeFormat(context);
+    	    	
     	    	for (Map<String, Object> alert : alerts)
     	    	{
     	    		alert.put("description", Html.fromHtml((String)alert.get("description")));
+    	    		String dateString, timeString;
+					try {
+						Date date = dateParser.parse((String)alert.get("date"));
+						dateString = dateFormat.format(date);
+						timeString = timeFormat.format(date);
+					} catch (ParseException e) {
+						Log.e(TAG, "date parse error for date " + alert.get("date") + ": ", e);
+						dateString = (String)alert.get("date");
+						timeString = "";
+					}
+    	    		alert.put("date", dateString + " " + timeString);
     	    	}
     	    	
     	    	MainActivity.this.alerts = alerts;
@@ -142,7 +202,7 @@ public class MainActivity extends ListActivity
 
     	};
     	
-    	requestTask.execute(Constants.SERVER_URL + "latest");
+    	requestTask.execute(Constants.SERVER_URL + "latest/byDevice/" + regid);
     }
     
     private void drawAlerts()
@@ -152,27 +212,11 @@ public class MainActivity extends ListActivity
     	
     	alertListAdapter = new SimpleAdapter(
                 this, alerts, R.layout.alert_item, 
-                new String[] { "title", "description" },
-                new int[] { R.id.title, R.id.description });
+                new String[] { "title", "description", "date" },
+                new int[] { R.id.title, R.id.description, R.id.timestamp });
     	setListAdapter(alertListAdapter);
     }
     
-    @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) 
-    {
-    	Map<String, Object> alert = alerts.get(position);
-    	Uri uri = Uri.parse((String)alert.get("link"));
-    	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-    	startActivity(intent);
-    }
-    
-    @Override
-    protected void onResume() 
-    {
-        super.onResume();
-        // Check device for Play Services APK.
-        gcmreg.checkPlayServices();
-    }
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
