@@ -2,7 +2,7 @@
 <resources>
 
     <!-- Light blue-ish foregrounds -->
-    <color name="foreground">#FF5ba2eb</color>
+    <color name="foreground">#FF4071A4</color>
     <color name="foreground_fader">#886796d9</color>
 
     <!-- Lilac/purple foreground highlights -->

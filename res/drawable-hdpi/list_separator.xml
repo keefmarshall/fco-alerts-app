@@ -4,9 +4,9 @@
     android:shape="rectangle">
 
     <gradient 
-        android:startColor="@color/background"
-        android:centerColor="@color/foreground_fader"
-        android:endColor="@color/background"
+        android:startColor="@color/foreground_fader"
+        android:centerColor="@color/background"
+        android:endColor="@color/foreground_fader"
         android:angle="0"/>
     
 </shape>
