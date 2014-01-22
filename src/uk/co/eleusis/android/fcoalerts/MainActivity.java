@@ -137,7 +137,9 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) 
     {
-    	Map<String, Object> alert = alerts.get(position);
+    	// NOTE! the pull-to-refresh thing seems to add one extra row, so we have
+    	// to take one off the list position to get the right item here!
+    	Map<String, Object> alert = alerts.get(position - 1);
     	Uri uri = Uri.parse((String)alert.get("link"));
     	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
     	startActivity(intent);
