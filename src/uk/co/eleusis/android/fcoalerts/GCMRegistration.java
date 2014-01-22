@@ -51,6 +51,9 @@ public class GCMRegistration
 	
 	// Initialised in init() method
     private GoogleCloudMessaging gcm;
+    
+    // Optional, set by caller if required:
+	private RegidChangeListener listener;
 
 	
 
@@ -168,6 +171,11 @@ public class GCMRegistration
 
                     // Persist the regID - no need to register again.
                     storeRegistrationId(context, regid);
+
+                    if (listener != null)
+                	{
+                		listener.regidChanged(regid);
+                	}
                 } 
                 catch (IOException ex) 
                 {
@@ -282,4 +290,8 @@ public class GCMRegistration
     	}
     }
 
+    public void addRegidChangeListener(RegidChangeListener listener)
+    {
+    	this.listener = listener;
+    }
 }

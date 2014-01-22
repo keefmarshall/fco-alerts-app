@@ -44,7 +44,7 @@ import android.widget.SimpleAdapter;
  * @author keithm
  *
  */
-public class MainActivity extends ListActivity 
+public class MainActivity extends ListActivity implements RegidChangeListener
 {
 
     /**
@@ -90,6 +90,7 @@ public class MainActivity extends ListActivity
 
             if (regid.isEmpty()) 
             {
+            	gcmreg.addRegidChangeListener(this);
                 gcmreg.registerInBackground(context);
             }
         }
@@ -163,13 +164,36 @@ public class MainActivity extends ListActivity
     			String content = "";
     			try 
     			{
-    				content = comms.getRequest(params[0]);
+    				// need regid to be set, if app version changes, or app is new, we must wait
+    				int retries = 10;
+    				long delay = 100; 
+    				while ( (MainActivity.this.regid == null || MainActivity.this.regid.isEmpty()) 
+    						&& retries > 0)
+    				{
+    					Log.d(TAG, "Retrying for regid..");
+    					Thread.sleep(delay);
+    					retries--;
+    				}
+
+    				String url = params[0];
+    				if (regid != null && !regid.isEmpty()) // hopefully should be set
+    				{
+    					url = params[0] + "byDevice/" + MainActivity.this.regid;
+    				}
+    				Log.d(TAG, "Got URL = " + url);
+    				
+    				content = comms.getRequest(url);
     			}
     			catch (IOException e) 
     			{
     				// TODO Auto-generated catch block
     				e.printStackTrace();
-    			}
+    			} 
+    			catch (InterruptedException e) 
+    			{
+    				// Shouldn't happen
+					e.printStackTrace();
+				}
     			return comms.parseJsonList(content);
     		}
     		
@@ -202,9 +226,9 @@ public class MainActivity extends ListActivity
 
     	};
     	
-    	requestTask.execute(Constants.SERVER_URL + "latest/byDevice/" + regid);
+    	requestTask.execute(Constants.SERVER_URL + "latest/");
     }
-    
+        
     private void drawAlerts()
     {
     	// need to strip HTML from descriptions - this is hacky, probably should build
@@ -375,6 +399,13 @@ public class MainActivity extends ListActivity
     	};
     	
     	requestTask.execute(Constants.SERVER_URL + "removeCountries");
+	}
+
+	@Override
+	public void regidChanged(String regid) 
+	{
+		Log.i(TAG, "Received new regid: " + regid);
+		this.regid = regid;
 	}
 
 }
