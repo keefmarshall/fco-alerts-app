@@ -1,7 +1,5 @@
 package uk.co.eleusis.android.fcoalerts;
 
-import java.util.List;
-
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 
