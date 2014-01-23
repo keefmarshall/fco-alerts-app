@@ -7,8 +7,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import uk.co.eleusis.android.util.Messager;
 import android.app.ListActivity;
@@ -217,7 +219,9 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     	    protected void onPostExecute(List<Map<String, Object>> alerts)
     	    {
     	    	// date is: 2013-12-19T14:52:18Z
-    	    	SimpleDateFormat dateParser =  new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'");
+    	    	SimpleDateFormat dateParser =  
+    	    			new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'", Locale.UK);
+    	    	dateParser.setTimeZone(TimeZone.getTimeZone("Europe/London"));
     	    	DateFormat dateFormat = android.text.format.DateFormat.getMediumDateFormat(context);
     	    	DateFormat timeFormat = android.text.format.DateFormat.getTimeFormat(context);
     	    	
