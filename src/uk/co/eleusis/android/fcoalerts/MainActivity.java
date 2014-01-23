@@ -213,12 +213,21 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     				// Shouldn't happen
 					e.printStackTrace();
 				}
-    			return comms.parseJsonList(content);
+    			
+    			List<Map<String, Object>> alerts = comms.parseJsonList(content);
+    	    	cleanUpAlerts(alerts);
+    			return alerts;
     		}
     		
     	    protected void onPostExecute(List<Map<String, Object>> alerts)
     	    {
-    	    	// date is: 2013-12-19T14:52:18Z
+    	    	MainActivity.this.alerts = alerts;
+    	    	drawAlerts();
+    	    	((PullToRefreshListView) getListView()).onRefreshComplete();
+    	    }
+
+			private void cleanUpAlerts(List<Map<String, Object>> alerts) {
+				// date is: 2013-12-19T14:52:18Z
     	    	SimpleDateFormat dateParser =  
     	    			new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'", Locale.UK);
     	    	dateParser.setTimeZone(TimeZone.getTimeZone("Europe/London"));
@@ -240,11 +249,7 @@ public class MainActivity extends ListActivity implements RegidChangeListener
 					}
     	    		alert.put("date", dateString + " " + timeString);
     	    	}
-    	    	
-    	    	MainActivity.this.alerts = alerts;
-    	    	drawAlerts();
-    	    	((PullToRefreshListView) getListView()).onRefreshComplete();
-    	    }
+			}
 
     	};
     	
