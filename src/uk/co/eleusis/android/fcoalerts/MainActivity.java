@@ -229,7 +229,7 @@ public class MainActivity extends ListActivity implements RegidChangeListener
 			private void cleanUpAlerts(List<Map<String, Object>> alerts) {
 				// date is: 2013-12-19T14:52:18Z
     	    	SimpleDateFormat dateParser =  
-    	    			new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS'Z'", Locale.UK);
+    	    			new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.UK);
     	    	dateParser.setTimeZone(TimeZone.getTimeZone("Europe/London"));
     	    	DateFormat dateFormat = android.text.format.DateFormat.getMediumDateFormat(context);
     	    	DateFormat timeFormat = android.text.format.DateFormat.getTimeFormat(context);
