@@ -70,6 +70,7 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     private List<Map<String, Object>> alerts;
     
     private PreferenceChangeListener preferenceListener;
+    private Notifier notifier;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) 
@@ -101,6 +102,8 @@ public class MainActivity extends ListActivity implements RegidChangeListener
         {
             Log.i(TAG, "No valid Google Play Services APK found.");
         }
+        
+        notifier = new Notifier(this);
     }
     
     private void initialiseUI()
@@ -153,6 +156,7 @@ public class MainActivity extends ListActivity implements RegidChangeListener
         super.onResume();
         // Check device for Play Services APK.
         gcmreg.checkPlayServices();
+        fetchLatestAlerts();
     }
 
     /**
@@ -223,6 +227,7 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     	    {
     	    	MainActivity.this.alerts = alerts;
     	    	drawAlerts();
+    	        notifier.clearNotification();
     	    	((PullToRefreshListView) getListView()).onRefreshComplete();
     	    }
 

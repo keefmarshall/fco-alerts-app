@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.text.Html;
 import android.util.Log;
 
 /**
@@ -26,20 +27,22 @@ public class Notifier
     public static final int NOTIFICATION_ID = 1;
     
     private NotificationManager mNotificationManager;
+    private NotificationStore mNotificationStore;
 
     private Context context;
     
     public Notifier(Context context)
     {
     	this.context = context;
+        mNotificationManager = (NotificationManager)
+                context.getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationStore = new NotificationStore(context);
     }
     
     // Put the message into a notification and post it. Use this for the simplest
     // of messages, or errors. We don't use this for FCO alerts.
-    public void sendSimpleMessage(String msg) {
-        mNotificationManager = (NotificationManager)
-                context.getSystemService(Context.NOTIFICATION_SERVICE);
-
+    public void sendSimpleMessage(String msg) 
+    {
         PendingIntent contentIntent = 
         		PendingIntent.getActivity(context, 0,
         				new Intent(context, MainActivity.class), 0);
@@ -60,14 +63,81 @@ public class Notifier
     {
     	NotificationPreferences nprefs = readNotificationPreferences(context);
     	if (nprefs.notifications) {return;}
-    	
-        mNotificationManager = (NotificationManager)
-                context.getSystemService(Context.NOTIFICATION_SERVICE);
 
+    	mNotificationStore.storeNotification(alert);
+    	
+    	String[] nstrings = mNotificationStore.getNotificationStrings();
+    	Notification notification;
+    	if (nstrings == null || nstrings.length == 1)
+    	{
+    	    notification = buildSingleNotification(alert);
+    	}
+    	else
+    	{
+    	    notification = buildInboxNotification(nstrings);
+    	}
+        
+		notification.flags |= (Notification.FLAG_SHOW_LIGHTS | Notification.FLAG_AUTO_CANCEL);
+		
+		// We need to know when the notification goes away:
+		Intent deleteIntent = new Intent(context, NotificationDeleteReceiver.class);
+		deleteIntent.setData(Uri.parse(alert.getMessageId()));
+		notification.deleteIntent = PendingIntent.getBroadcast(context, 0, deleteIntent, 0);
+		
+		// Adjust notification behaviour based on preferences:
+		modifyNotification(notification, nprefs);
+
+        mNotificationManager.notify(NOTIFICATION_ID, notification);
+//		mNotificationManager.notify(alert.getTitle(), NOTIFICATION_ID, notification);
+    }
+
+    private Notification buildInboxNotification(String[] nstrings)
+    {
+        // When the user clicks on the notification, launch the MainActivity class
+//        Intent intent = new Intent(context, MainActivity.class);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP); // try to get back to the same one
+//        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+        Intent intent = new Intent(context, NotificationForwardReceiver.class);
+        PendingIntent contentIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+
+        NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle();
+        for (int i = 0; i < Math.min(6,  nstrings.length); i++)
+        {
+            style.addLine(Html.fromHtml(nstrings[i]));
+        }
+        
+        style.setSummaryText("FCO Alerts");
+        if (nstrings.length > 6)
+        {
+            style.setSummaryText("+" + (nstrings.length - 6) + " more");
+        }
+        
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(context)
+                    .setSmallIcon(R.drawable.ic_action_map)
+                    .setContentTitle(nstrings.length + " new alerts")
+                    .setStyle(style)
+                    .setContentText("FCO Alerts")
+                    .setContentInfo(Integer.toString(nstrings.length))
+                    .setDefaults(Notification.DEFAULT_ALL) // Buzz, Flash, Ping, Whee!
+                    .setContentIntent(contentIntent)
+                    .setNumber(nstrings.length);
+        
+
+        Notification notification = builder.build();
+        return notification;
+    }
+
+    private Notification buildSingleNotification(NotifiedAlert alert)
+    {
         // When the user clicks on the notification, launch the FCO website using
-        // the link in the alert
-    	Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(alert.getLink()));
-    	PendingIntent contentIntent = PendingIntent.getActivity(context, 0, intent, 0);
+        // the link in the alert. This class of ours also ensures that the notification
+        // gets cleared from the store as well.
+    	Intent intent = new Intent(context, NotificationForwardReceiver.class);
+    	intent.setData(Uri.parse(alert.getLink()));
+    	
+    	PendingIntent contentIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
 
         String description = alert.getDescription();
 		NotificationCompat.Builder builder =
@@ -80,13 +150,13 @@ public class Notifier
 			        .setContentIntent(contentIntent);
 
 		Notification notification = builder.build();
-		notification.flags |= (Notification.FLAG_SHOW_LIGHTS | Notification.FLAG_AUTO_CANCEL);
-		
-		// Adjust notification behaviour based on preferences:
-		modifyNotification(notification, nprefs);
-
-//        mNotificationManager.notify(NOTIFICATION_ID, notification);
-		mNotificationManager.notify(alert.getTitle(), NOTIFICATION_ID, notification);
+        return notification;
+    }
+    
+    public void clearNotification()
+    {
+        mNotificationManager.cancel(NOTIFICATION_ID);
+        mNotificationStore.removeAllNotifications();
     }
     
     /////////////////////////////////////////////////////////////////
