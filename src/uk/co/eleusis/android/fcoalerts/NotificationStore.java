@@ -49,18 +49,15 @@ public class NotificationStore
 	{
 	    // remove 'Latest update' from description, if present:
 	    String description = alert.getDescription().trim();
-	    Log.d(TAG, "Description = " + description);
 	    
 	    if (description.startsWith("Latest update: "))
 	    {
 	        description = description.substring("Latest update: ".length());
-            Log.d(TAG, "Detected 'latest update' - description now " + description);
 	    }
 	    
 	    if (description.startsWith("Summary - "))
 	    {
 	        description = description.substring("Summary - ".length());
-            Log.d(TAG, "Detected 'Summary' - description now " + description);
 	    }
 	    
 	    // convert to HTML string:

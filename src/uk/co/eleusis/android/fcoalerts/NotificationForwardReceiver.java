@@ -1,7 +1,6 @@
 package uk.co.eleusis.android.fcoalerts;
 
 import uk.co.eleusis.android.util.DebugUtils;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
