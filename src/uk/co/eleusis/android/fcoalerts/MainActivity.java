@@ -22,6 +22,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
@@ -72,6 +73,8 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     private PreferenceChangeListener preferenceListener;
     private Notifier notifier;
     
+    private SwipeRefreshLayout swipeRefreshLayout;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) 
     {
@@ -111,9 +114,11 @@ public class MainActivity extends ListActivity implements RegidChangeListener
         setContentView(R.layout.activity_main);
         getActionBar().setTitle(R.string.app_title);
         
-        // Special pull-to-refresh functionality, fires when pulled
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
+        
+       // Special pull-to-refresh functionality, fires when pulled
         // Requires external library, see https://github.com/johannilsson/android-pulltorefresh
-        ((PullToRefreshListView) getListView()).setOnRefreshListener(new OnRefreshListener() 
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() 
         {
             @Override
             public void onRefresh() 
@@ -124,6 +129,16 @@ public class MainActivity extends ListActivity implements RegidChangeListener
                 fetchLatestAlerts();
             }
         });
+        
+//        swipeRefreshLayout.post(new Runnable() 
+//        {
+//            @Override
+//            public void run() 
+//            {
+//                swipeRefreshLayout.setRefreshing(true);
+//                fetchLatestAlerts();
+//            }
+//        });
     }
     
     /////////////////////////////////////////////////////////////////
@@ -134,6 +149,7 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     protected void onStart() 
     {
         super.onStart();
+        Log.d(TAG, "onStart called");
         
         // Fetch the latest feeds and show them on the home page
         fetchLatestAlerts();
@@ -144,9 +160,12 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     {
     	// NOTE! the pull-to-refresh thing seems to add one extra row, so we have
     	// to take one off the list position to get the right item here!
-        if (position > 0)
+        // NB not using this any more!
+        //if (position > 0)
+        if (position >= 0)
         {
-        	Map<String, Object> alert = alerts.get(position - 1);
+        	//Map<String, Object> alert = alerts.get(position - 1);
+            Map<String, Object> alert = alerts.get(position);
         	Uri uri = Uri.parse((String)alert.get("link"));
         	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         	startActivity(intent);
@@ -158,9 +177,11 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     protected void onResume() 
     {
         super.onResume();
+        Log.d(TAG, "onResume called");
+        
         // Check device for Play Services APK.
         gcmreg.checkPlayServices();
-        fetchLatestAlerts();
+        //fetchLatestAlerts();
     }
 
     /**
@@ -180,7 +201,9 @@ public class MainActivity extends ListActivity implements RegidChangeListener
 
     private void fetchLatestAlerts()
     {
-    	AsyncTask<String, Integer, List<Map<String, Object>>> requestTask = 
+        swipeRefreshLayout.setRefreshing(true);
+
+        AsyncTask<String, Integer, List<Map<String, Object>>> requestTask = 
     			new AsyncTask<String, Integer, List<Map<String, Object>>>()
     	{
 
@@ -232,7 +255,8 @@ public class MainActivity extends ListActivity implements RegidChangeListener
     	    	MainActivity.this.alerts = alerts;
     	    	drawAlerts();
     	        notifier.clearNotification();
-    	    	((PullToRefreshListView) getListView()).onRefreshComplete();
+    	    	//((PullToRefreshListView) getListView()).onRefreshComplete();
+    	        swipeRefreshLayout.setRefreshing(false);
     	    }
 
 			private void cleanUpAlerts(List<Map<String, Object>> alerts) {
