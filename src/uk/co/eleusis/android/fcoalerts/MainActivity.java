@@ -33,8 +33,6 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
 import com.google.gson.Gson;
-import com.markupartist.android.widget.PullToRefreshListView;
-import com.markupartist.android.widget.PullToRefreshListView.OnRefreshListener;
 
 /**
  * MainActivity for FCO alerts - this is mostly a copy of DemoActivity from
@@ -354,13 +352,19 @@ public class MainActivity extends ListActivity implements RegidChangeListener
         	if (key.equals("countries"))
         	{
 	        	Object thing = prefs.getStringSet(key, null);
-	        	Log.d(TAG, "'" + key + "' contains object of class: " + thing.getClass().getName());
-	        	Log.d(TAG, ".. and contents are: " + thing.toString());
-	        	// turns out 'countries' is a HashSet, containing the contents of the checked 
-	        	// entries e.g.: [Angola, Barbados, Turkey, Afghanistan, American Samoa, Bahrain]
-	        	if (thing != null)
-	        	{
-	        		saveCountriesToServer((Set<String>)thing);
+                if (thing != null)
+                {
+    	        	Log.d(TAG, "'" + key + "' contains object of class: " + thing.getClass().getName());
+    	        	Log.d(TAG, ".. and contents are: " + thing.toString());
+    	        	// turns out 'countries' is a HashSet, containing the contents of the checked 
+    	        	// entries e.g.: [Angola, Barbados, Turkey, Afghanistan, American Samoa, Bahrain]
+    	        	
+    	        	Set<String> countries = (Set<String>)thing;
+    	        	if(prefs.getBoolean("all_countries_checkbox", false))
+    	        	{
+    	        	    // only save the country list if the countries checkbox is ticked
+    	        	    saveCountriesToServer(countries);
+    	        	}
 	        	}
         	}
         	else if (key.equals("all_countries_checkbox"))
